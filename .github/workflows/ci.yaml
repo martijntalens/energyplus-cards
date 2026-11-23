@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  cards:
+    name: Cards
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - name: Check JavaScript syntax
+        run: node --check dist/energyplus-cards.js
+      - name: Check hacs.json
+        run: |
+          node -e '
+            const fs = require("fs");
+            const cfg = JSON.parse(fs.readFileSync("hacs.json", "utf8"));
+            if (!cfg.name || !cfg.filename) throw new Error("hacs.json needs name and filename");
+            if (!fs.existsSync("dist/" + cfg.filename)) throw new Error("dist/" + cfg.filename + " is missing");
+            console.log("ok");
+          '
